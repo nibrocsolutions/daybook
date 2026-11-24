@@ -1,0 +1,3 @@
+{% for item in flash %}
+  <div class="flash {% if item.level == 'error' %}flash-error{% elif item.level == 'warn' %}flash-warn{% else %}flash-ok{% endif %}" role="status">{{ item.message }}</div>
+{% endfor %}

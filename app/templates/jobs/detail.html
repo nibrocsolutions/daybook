@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import status_pill %}
+{% block title %}{{ job.number }} {{ job.title }}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">{{ job.number }}{% if job.invoice_number %} · {{ job.invoice_number }}{% endif %}</p>
+    <h1>{{ job.title }}</h1>
+    <p class="meta-line">
+      {{ status_pill(job.status) }}
+      {% if job.priority == "urgent" %}<span class="urgent">Urgent</span>{% endif %}
+      <a href="/customers/{{ job.customer.id }}">{{ job.customer.name }}</a>
+    </p>
+  </div>
+  <div class="head-actions">
+    <a class="btn secondary" href="/jobs/{{ job.id }}/edit">Edit</a>
+    <a class="btn secondary" href="/jobs/{{ job.id }}/invoice">Invoice</a>
+  </div>
+</header>
+<div class="desk">
+  <div class="desk-main">
+    <section class="card">
+      <dl class="facts">
+        <div>
+          <dt>When</dt>
+          <dd>{{ job.scheduled_start|when(shop.timezone) }}{% if job.scheduled_end %} – {{ job.scheduled_end|clock(shop.timezone) }}{% endif %}</dd>
+        </div>
+        <div>
+          <dt>Assigned</dt>
+          <dd>{{ job.assignee.name if job.assignee else "Unassigned" }}</dd>
+        </div>
+        <div>
+          <dt>Address</dt>
+          <dd class="prose">{{ job.display_address or "No address yet" }}
+            {% set map = maps_url(job.display_address) %}
+            {% if map %}<a href="{{ map }}" target="_blank" rel="noopener noreferrer">Map</a>{% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd>
+            {% set tel = tel_href(job.customer.phone) %}
+            {% if tel %}<a href="{{ tel }}">{{ job.customer.phone }}</a>{% else %}{{ job.customer.phone or "—" }}{% endif %}
+          </dd>
+        </div>
+      </dl>
+      {% if job.description %}<p class="prose">{{ job.description }}</p>{% endif %}
+      <form method="post" action="/jobs/{{ job.id }}/status" class="inline-form">
+        {{ csrf() }}
+        <label>
+          <span>Status</span>
+          <select name="status">
+            {% for item in STATUSES %}
+            <option value="{{ item }}" {% if job.status == item %}selected{% endif %}>{{ STATUS_LABELS[item] }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn secondary" type="submit">Update status</button>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Lines</h2>
+      {% if job.lines %}
+      <div class="table-wrap plain">
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Kind</th>
+              <th class="money">Qty</th>
+              <th class="money">Price</th>
+              <th class="money">Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for line in job.lines %}
+            <tr>
+              <td>{{ line.description }}</td>
+              <td>{{ KIND_LABELS[line.kind] }}</td>
+              <td class="money">{{ line.quantity|qty }}</td>
+              <td class="money">{{ line.unit_price_cents|money }}</td>
+              <td class="money">{{ line_amount(line)|money }}</td>
+              <td>
+                <form method="post" action="/jobs/{{ job.id }}/lines/{{ line.id }}/delete" data-confirm="Remove this line?">
+                  {{ csrf() }}
+                  <button class="btn tiny danger" type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+            <tr class="line-edit">
+              <td colspan="6">
+                <details>
+                  <summary>Edit line</summary>
+                  <form method="post" action="/jobs/{{ job.id }}/lines/{{ line.id }}" class="form-grid">
+                    {{ csrf() }}
+                    <label class="span-2"><span>Description</span><input name="description" value="{{ line.description }}" required></label>
+                    <label>
+                      <span>Kind</span>
+                      <select name="kind">
+                        {% for item in LINE_KINDS %}
+                        <option value="{{ item }}" {% if line.kind == item %}selected{% endif %}>{{ KIND_LABELS[item] }}</option>
+                        {% endfor %}
+                      </select>
+                    </label>
+                    <label><span>Quantity</span><input name="quantity" value="{{ line.quantity|qty }}" required></label>
+                    <label><span>Unit price ($)</span><input name="unit_price" value="{{ '{:.2f}'.format(line.unit_price_cents / 100) }}" required></label>
+                    <div class="span-2"><button class="btn secondary" type="submit">Save line</button></div>
+                  </form>
+                </details>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="empty">No priced lines yet.</p>
+      {% endif %}
+      <form method="post" action="/jobs/{{ job.id }}/lines" class="form-grid add-line">
+        {{ csrf() }}
+        <h3 class="span-2">Add a line</h3>
+        <label class="span-2"><span>Description</span><input name="description" required></label>
+        <label>
+          <span>Kind</span>
+          <select name="kind">
+            {% for item in LINE_KINDS %}
+            <option value="{{ item }}">{{ KIND_LABELS[item] }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label><span>Quantity</span><input name="quantity" value="1" required></label>
+        <label><span>Unit price ($)</span><input name="unit_price" inputmode="decimal" required></label>
+        <div class="span-2"><button class="btn secondary" type="submit">Add line</button></div>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Crew notes</h2>
+      <p class="help">These stay off the invoice.</p>
+      {% if job.notes %}
+      <ul class="note-list">
+        {% for note in job.notes %}
+        <li>
+          <p class="prose">{{ note.body }}</p>
+          <p class="help">{{ note.author.name if note.author else "Someone" }} · {{ note.created_at|when(shop.timezone) }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <form method="post" action="/jobs/{{ job.id }}/notes" class="stack">
+        {{ csrf() }}
+        <label>
+          <span>Add a note</span>
+          <textarea name="body" required></textarea>
+        </label>
+        <button class="btn secondary" type="submit">Save note</button>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Activity</h2>
+      {% if job.events %}
+      <ol class="event-list">
+        {% for event in job.events %}
+        <li>
+          <p>{{ event.message }}</p>
+          <p class="help">{{ event.actor.name if event.actor else "Fieldbook" }} · {{ event.created_at|when(shop.timezone) }}</p>
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="empty">No activity yet.</p>
+      {% endif %}
+    </section>
+  </div>
+  <aside class="ledger">
+    <h2>Ledger</h2>
+    <div class="tally">
+      <div><span>Subtotal</span><span>{{ job.subtotal_cents|money }}</span></div>
+      <div><span>Tax {{ tax_caption(job.tax_rate_bps, job.tax_labor) }}</span><span>{{ job.tax_cents|money }}</span></div>
+      {% if job.discount_cents %}
+      <div><span>Discount</span><span>-{{ job.discount_cents|money }}</span></div>
+      {% endif %}
+      <div class="grand"><span>Total</span><span>{{ job.total_cents|money }}</span></div>
+      <div><span>Paid</span><span>{{ paid|money }}</span></div>
+      <div class="due"><span>{% if balance < 0 %}Credit{% else %}Balance{% endif %}</span><span>{% if balance < 0 %}{{ (-balance)|money }}{% else %}{{ balance|money }}{% endif %}</span></div>
+    </div>
+    {% if balance > 0 and job.status != "cancelled" %}
+    <form method="post" action="/jobs/{{ job.id }}/payments" class="stack">
+      {{ csrf() }}
+      <h3>Record a payment</h3>
+      <label>
+        <span>Amount ($)</span>
+        <input name="amount" inputmode="decimal" required value="{{ '{:.2f}'.format(balance / 100) }}">
+      </label>
+      <label>
+        <span>Method</span>
+        <select name="method">
+          {% for item in MANUAL_METHODS %}
+          <option value="{{ item }}">{{ METHOD_LABELS[item] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Note</span>
+        <input name="note" maxlength="500">
+      </label>
+      <button class="btn" type="submit">Record payment</button>
+    </form>
+    {% if stripe.ready and balance >= 50 %}
+    <form method="post" action="/jobs/{{ job.id }}/checkout">
+      {{ csrf() }}
+      <button class="btn secondary" type="submit">Collect card payment</button>
+    </form>
+    {% if stripe.test_mode %}<p class="help">Stripe test mode. Use card 4242 4242 4242 4242, any future date, and any CVC.</p>{% endif %}
+    {% elif stripe.ready and balance < 50 %}
+    <p class="help">Stripe cannot charge less than $0.50. Record this balance manually.</p>
+    {% elif not stripe.ready %}
+    <p class="help">{{ stripe.problem }}</p>
+    {% endif %}
+    {% elif job.status == "cancelled" %}
+    <p class="help">This job is cancelled.</p>
+    {% else %}
+    <p class="help">Nothing is due.</p>
+    {% endif %}
+    {% if job.payments %}
+    <ul class="pay-list">
+      {% for payment in job.payments %}
+      <li>
+        <div>
+          <strong>{{ payment.amount_cents|money }}</strong>
+          <span>{{ METHOD_LABELS.get(payment.method, payment.method) }} · {{ payment.status }}</span>
+          {% if payment.note %}<em>{{ payment.note }}</em>{% endif %}
+        </div>
+        {% if user.role == "admin" and payment.status == "succeeded" %}
+        <form method="post" action="/jobs/{{ job.id }}/payments/{{ payment.id }}/refund" data-confirm="Refund this payment in the ledger?">
+          {{ csrf() }}
+          <button class="btn tiny danger" type="submit">Refund</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if user.role == "admin" %}
+    <form method="post" action="/jobs/{{ job.id }}/delete" data-confirm="Delete {{ job.number }} and its payments?">
+      {{ csrf() }}
+      <button class="btn tiny danger" type="submit">Delete job</button>
+    </form>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

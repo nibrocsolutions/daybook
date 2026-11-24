@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import status_pill %}
+{% block title %}Schedule{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Schedule</p>
+    <h1>The next seven days</h1>
+  </div>
+  <a class="btn" href="/jobs/new">New job</a>
+</header>
+<div class="week">
+  {% for day in days %}
+  <section class="card day-block">
+    <h2>{{ day.label }}</h2>
+    {% if day.jobs %}
+    <ul class="run-list">
+      {% for job in day.jobs %}
+      <li>
+        <a href="/jobs/{{ job.id }}">
+          <span class="when">{{ job.scheduled_start|clock(shop.timezone) }}{% if job.scheduled_end %}–{{ job.scheduled_end|clock(shop.timezone) }}{% endif %}</span>
+          <span>
+            <strong>{{ job.title }}</strong>
+            <em>{{ job.customer.name }}{% if job.assignee %} · {{ job.assignee.name }}{% endif %}</em>
+          </span>
+          {{ status_pill(job.status) }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">Open</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+</div>
+<section class="card later">
+  <h2>Not on the calendar</h2>
+  {% if unscheduled %}
+  <ul class="run-list">
+    {% for job in unscheduled %}
+    <li>
+      <a href="/jobs/{{ job.id }}">
+        <span class="when">{{ job.number }}</span>
+        <span>
+          <strong>{{ job.title }}</strong>
+          <em>{{ job.customer.name }}</em>
+        </span>
+        {{ status_pill(job.status) }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">Every open job has a time.</p>
+  {% endif %}
+</section>
+{% endblock %}

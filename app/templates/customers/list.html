@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Customers</p>
+    <h1>Who we work for</h1>
+  </div>
+  <a class="btn" href="/customers/new">Add customer</a>
+</header>
+<form class="filters" method="get" action="/customers">
+  <label>
+    <span>Search</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="Name, phone, email, or city">
+  </label>
+  <button class="btn secondary" type="submit">Search</button>
+</form>
+{% if customers %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th class="hide-sm">Phone</th>
+        <th class="hide-sm">City</th>
+        <th class="money">Jobs</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for customer in customers %}
+      <tr>
+        <td><a href="/customers/{{ customer.id }}"><strong>{{ customer.name }}</strong></a>{% if customer.is_sample %} <span class="help">Sample</span>{% endif %}</td>
+        <td class="hide-sm">{{ customer.phone or "—" }}</td>
+        <td class="hide-sm">{{ customer.city or "—" }}</td>
+        <td class="money">{{ counts.get(customer.id, 0) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if pages > 1 %}
+<nav class="pager">
+  {% if page > 1 %}<a href="/customers?page={{ page - 1 }}{% if query %}&amp;{{ query }}{% endif %}">Previous</a>{% endif %}
+  <span>Page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}<a href="/customers?page={{ page + 1 }}{% if query %}&amp;{{ query }}{% endif %}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<p class="empty">No customers yet. <a href="/customers/new">Add the first one</a>.</p>
+{% endif %}
+{% endblock %}

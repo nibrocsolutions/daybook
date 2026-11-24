@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Backup{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Admin</p>
+    <h1>Backup</h1>
+    <p class="help">JSON is the file you can import again. Spreadsheets are for reading in Excel. Passwords are never included.</p>
+  </div>
+</header>
+<section class="card">
+  <h2>Download</h2>
+  <form method="post" action="/admin/export" class="form-actions">
+    {{ csrf() }}
+    <button class="btn" type="submit" name="format" value="json">JSON backup</button>
+    <button class="btn secondary" type="submit" name="format" value="jobs-csv">Jobs CSV</button>
+    <button class="btn secondary" type="submit" name="format" value="customers-csv">Customers CSV</button>
+    <button class="btn secondary" type="submit" name="format" value="payments-csv">Payments CSV</button>
+  </form>
+</section>
+<section class="card later">
+  <h2>Import a JSON backup</h2>
+  <p class="help">Import adds or updates customers, jobs, lines, and payments by their ids. It does not delete records that are missing from the file, and it does not change user accounts.</p>
+  <form method="post" action="/admin/import" enctype="multipart/form-data" class="stack">
+    {{ csrf() }}
+    <label>
+      <span>Backup file</span>
+      <input type="file" name="backup" accept="application/json,.json" required>
+    </label>
+    <button class="btn" type="submit">Import</button>
+  </form>
+</section>
+{% if sample_count %}
+<section class="card later">
+  <h2>Sample shop</h2>
+  <p>{{ sample_count }} sample {% if sample_count == 1 %}customer is{% else %}customers are{% endif %} still in the book, along with their jobs.</p>
+  <form method="post" action="/admin/sample/delete" data-confirm="Remove all sample customers, their jobs, and the sample technician?">
+    {{ csrf() }}
+    <button class="btn danger" type="submit">Remove sample data</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}
