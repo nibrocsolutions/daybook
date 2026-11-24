@@ -18,21 +18,21 @@
       <dt>Phone</dt>
       <dd>
         {% set tel = tel_href(customer.phone) %}
-        {% if tel %}<a href="{{ tel }}">{{ customer.phone }}</a>{% else %}{{ customer.phone or "—" }}{% endif %}
+        {% if tel %}<a class="action-link" href="{{ tel }}">{{ customer.phone }}</a>{% else %}{{ customer.phone or "—" }}{% endif %}
       </dd>
     </div>
     <div>
       <dt>Email</dt>
       <dd>
         {% set mail = mailto_href(customer.email) %}
-        {% if mail %}<a href="{{ mail }}">{{ customer.email }}</a>{% else %}{{ customer.email or "—" }}{% endif %}
+        {% if mail %}<a class="action-link" href="{{ mail }}">{{ customer.email }}</a>{% else %}{{ customer.email or "—" }}{% endif %}
       </dd>
     </div>
     <div>
       <dt>Address</dt>
       <dd class="prose">{{ customer.postal_address or "—" }}
         {% set map = maps_url(customer.postal_address) %}
-        {% if map %}<a href="{{ map }}" target="_blank" rel="noopener noreferrer">Map</a>{% endif %}
+        {% if map %}<a class="action-link" href="{{ map }}" target="_blank" rel="noopener noreferrer">Map</a>{% endif %}
       </dd>
     </div>
   </dl>

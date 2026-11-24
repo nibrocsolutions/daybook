@@ -6,12 +6,18 @@ The app is a Python web service (FastAPI, server-rendered HTML, Postgres) packag
 
 ## Run with Docker
 
-Docker Compose starts Postgres and the web app. The site listens on `http://localhost:8000` from this computer only.
+Docker Compose starts Postgres and the web app. The site listens on `http://localhost:8055` from this computer only. The same pages are laid out for iPhone Safari out on a job and for Chrome on a Mac back at the desk.
+
+Copy these commands to get a local copy running:
 
 ```bash
+git clone https://github.com/nibrocsolutions/handyman-app.git
+cd handyman-app
 cp .env.example .env
 docker compose up --build
 ```
+
+Then open `http://localhost:8055`. Renaming the GitHub repository does not change anything inside the app. After a rename, clone the new address and `cd` into that folder. GitHub keeps the old address working as a redirect.
 
 The first launch creates an admin and, outside production, a fictional sample shop so the screens are not empty.
 
@@ -31,7 +37,7 @@ Python 3.12. SQLite is used when `DATABASE_URL` is unset, which is enough for a 
 
 ```bash
 python3 -m pip install -r requirements.txt
-ENV=development SEED_DEMO=true python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+ENV=development SEED_DEMO=true python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8055
 ```
 
 Tests:
@@ -77,7 +83,7 @@ Point a Stripe webhook at `https://your-host/webhooks/stripe` for:
 Local forwarding:
 
 ```bash
-stripe listen --forward-to localhost:8000/webhooks/stripe
+stripe listen --forward-to localhost:8055/webhooks/stripe
 ```
 
 **Collect card payment** sends the customer to `https://checkout.stripe.com`. The balance is marked paid when Stripe reports the session paid, either on the return URL or through the webhook. A pending Checkout link is reused for about a day so a double-click does not open two charges. Test card: `4242 4242 4242 4242`.
@@ -101,7 +107,7 @@ Put TLS in front of the app and set:
 - `SEED_DEMO=false`
 - Stripe live keys only after a test-mode payment has succeeded
 
-The session cookie is `Secure` when `ENV=production`. Compose publishes port 8000 on `127.0.0.1` so a reverse proxy on the same machine is the intended public entry.
+The session cookie is `Secure` when `ENV=production`. Compose publishes port 8055 on `127.0.0.1` so a reverse proxy on the same machine is the intended public entry.
 
 ## Layout
 
@@ -109,6 +115,6 @@ The session cookie is `Secure` when `ENV=production`. Compose publishes port 800
 app/            FastAPI app, templates, and static files
 app/services/   totals, job ledger, Stripe, backup
 tests/          pytest against a temporary SQLite file
-Dockerfile      non-root image, uvicorn on port 8000
+Dockerfile      non-root image, uvicorn on port 8055
 docker-compose.yml
 ```

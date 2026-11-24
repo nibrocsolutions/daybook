@@ -20,7 +20,7 @@ services:
   web:
     build: .
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8055:8055"
     environment:
       ENV: ${ENV:-development}
       DATABASE_URL: postgresql+psycopg://daybook:${POSTGRES_PASSWORD:-daybook}@db:5432/daybook
@@ -29,7 +29,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-password}
       ADMIN_NAME: ${ADMIN_NAME:-Avery Lang}
       SEED_DEMO: ${SEED_DEMO:-true}
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8000}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8055}
       APP_TIMEZONE: ${APP_TIMEZONE:-America/New_York}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
@@ -37,7 +37,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8055/health')"]
       interval: 10s
       timeout: 5s
       retries: 8
