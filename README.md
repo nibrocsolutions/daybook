@@ -6,7 +6,7 @@ The app is a Python web service (FastAPI, server-rendered HTML, Postgres) packag
 
 ## Run with Docker
 
-Docker Compose starts Postgres and the web app. The site listens on `http://localhost:8055` from this computer only. The same pages are laid out for iPhone Safari out on a job and for Chrome on a Mac back at the desk.
+Docker Compose starts Postgres and the web app in the background and returns the command line. On that machine the site is `http://localhost:8055`. The same pages are laid out for iPhone Safari out on a job and for Chrome on a Mac back at the desk.
 
 Copy these commands to get a local copy running:
 
@@ -14,10 +14,23 @@ Copy these commands to get a local copy running:
 git clone https://github.com/nibrocsolutions/daybook.git
 cd daybook
 cp .env.example .env
-docker compose up --build
+docker compose up --build -d
 ```
 
 Then open `http://localhost:8055`. The old `handyman-app` address still redirects here, so a clone you already have keeps working.
+
+`-d` leaves the containers running and gives the prompt back. The log lines that follow a foreground start (`Daybook ready`, then `GET /health`) mean the app is up. Those health checks repeat on their own. Watch them with `docker compose logs -f`. Stop with `docker compose down`.
+
+If a start is still attached to the terminal, press Ctrl+C, then run `docker compose up -d`.
+
+On a Raspberry Pi, `127.0.0.1` only accepts connections from the Pi itself. To open Daybook from a phone or from another computer on the same network, change the bind line in `.env` to `DAYBOOK_BIND=0.0.0.0`, then run:
+
+```bash
+docker compose up -d
+hostname -I
+```
+
+Open `http://<that-address>:8055`, for example `http://192.168.1.20:8055`.
 
 The first launch creates an admin and, outside production, a fictional sample shop so the screens are not empty.
 
@@ -107,7 +120,7 @@ Put TLS in front of the app and set:
 - `SEED_DEMO=false`
 - Stripe live keys only after a test-mode payment has succeeded
 
-The session cookie is `Secure` when `ENV=production`. Compose publishes port 8055 on `127.0.0.1` so a reverse proxy on the same machine is the intended public entry.
+The session cookie is `Secure` when `ENV=production`. Compose publishes port 8055 on `127.0.0.1` unless `DAYBOOK_BIND` is set, so a reverse proxy on the same machine is the intended public entry.
 
 ## Layout
 
