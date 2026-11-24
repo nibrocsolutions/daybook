@@ -54,7 +54,7 @@ class Settings:
         secret = os.environ.get("SESSION_SECRET", "").strip()
         if not secret and env != "production":
             secret = "dev-only-session-secret"
-        base = os.environ.get("APP_BASE_URL", "http://localhost:8000").strip().rstrip("/")
+        base = os.environ.get("APP_BASE_URL", "http://localhost:8055").strip().rstrip("/")
         return cls(
             env=env,
             database_url=os.environ.get("DATABASE_URL", "sqlite:///./daybook.db").strip(),
@@ -66,7 +66,7 @@ class Settings:
             demo_tech_password=os.environ.get("DEMO_TECH_PASSWORD", "sample-tech-password"),
             stripe_secret_key=os.environ.get("STRIPE_SECRET_KEY", "").strip(),
             stripe_webhook_secret=os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip(),
-            app_base_url=base or "http://localhost:8000",
+            app_base_url=base or "http://localhost:8055",
             default_timezone=os.environ.get("APP_TIMEZONE", "America/New_York").strip()
             or "America/New_York",
             secure_cookies=env == "production",

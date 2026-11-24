@@ -1,10 +1,26 @@
+function setNav(open) {
+  document.body.classList.toggle("nav-open", open);
+  const toggle = document.querySelector("[data-nav-toggle]");
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  }
+}
+
 document.addEventListener("click", (event) => {
   const toggle = event.target.closest("[data-nav-toggle]");
   if (toggle) {
-    document.body.classList.toggle("nav-open");
+    setNav(!document.body.classList.contains("nav-open"));
+    return;
   }
-  if (event.target.closest("[data-nav-close]")) {
-    document.body.classList.remove("nav-open");
+  if (event.target.closest("[data-nav-close], .sidebar a")) {
+    setNav(false);
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    setNav(false);
   }
 });
 
