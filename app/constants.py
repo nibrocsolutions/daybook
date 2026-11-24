@@ -34,14 +34,25 @@ ROLES = ("admin", "technician")
 
 ROLE_LABELS = {
     "admin": "Admin",
-    "technician": "Technician",
+    "technician": "Staff",
+}
+
+CATEGORIES = ("house", "yard", "hvac", "software", "errand", "other")
+
+CATEGORY_LABELS = {
+    "house": "House",
+    "yard": "Yard",
+    "hvac": "HVAC",
+    "software": "Software",
+    "errand": "Errand",
+    "other": "Other",
 }
 
 LINE_KINDS = ("labor", "material", "other")
 
 KIND_LABELS = {
-    "labor": "Labor",
-    "material": "Material",
+    "labor": "Time",
+    "material": "Materials",
     "other": "Other",
 }
 

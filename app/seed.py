@@ -15,7 +15,7 @@ from app.models import Customer, Job, JobEvent, JobLine, JobNote, Payment, Shop,
 from app.security import hash_password
 from app.services.jobs import allocate_number, ensure_invoice_number, recalc_job
 
-log = logging.getLogger("fieldbook.seed")
+log = logging.getLogger("daybook.seed")
 
 
 def seed(app) -> None:
@@ -26,7 +26,7 @@ def seed(app) -> None:
         if shop is None:
             shop = Shop(
                 id=1,
-                business_name="Fieldbook",
+                business_name="Daybook",
                 phone="",
                 email="",
                 address="",
@@ -84,21 +84,21 @@ def _at(tz_name: str, day_offset: int, hour: int, minute: int = 0) -> datetime:
 
 
 def _load_demo(db: Session, shop: Shop, settings: Settings) -> None:
-    if shop.business_name == "Fieldbook":
-        shop.business_name = "Northline Handyman"
+    if shop.business_name == "Daybook":
+        shop.business_name = "Northline"
         shop.phone = "(845) 555-0199"
         shop.email = "office@northline.example"
         shop.address = "18 Partition Street\nKingston, NY 12401"
         shop.tax_rate_bps = 800
         shop.tax_labor = False
-    tech = db.scalars(select(User).where(User.email == "sam@fieldbook.local")).first()
+    tech = db.scalars(select(User).where(User.email == "sam@daybook.local")).first()
     if tech is None:
         password = settings.demo_tech_password
         if len(password) < 10:
             password = "sample-tech-password"
         tech = User(
             name="Sam Rivera",
-            email="sam@fieldbook.local",
+            email="sam@daybook.local",
             password_hash=hash_password(password),
             role="technician",
             active=True,
@@ -108,41 +108,40 @@ def _load_demo(db: Session, shop: Shop, settings: Settings) -> None:
         db.flush()
 
     helen = _customer(db, "Helen Cho", "845-555-0148", "helen@example.com", "184 Orchard Street", "Kingston", "NY", "12401", "Dog in the side yard. Text on arrival.")
-    marcus = _customer(db, "Marcus Hale", "845-555-0172", "marcus@example.com", "42 Cedar Lane", "Saugerties", "NY", "12477", "Gate code is on the work order.")
+    marcus = _customer(db, "Marcus Hale", "845-555-0172", "marcus@example.com", "42 Cedar Lane", "Saugerties", "NY", "12477", "Side gate sticks. Leave tools by the shed.")
     priya = _customer(db, "Priya Shah", "845-555-0114", "priya@example.com", "9 Mill Road", "Rhinebeck", "NY", "12572", "")
     owen = _customer(db, "Owen Briggs", "518-555-0166", "owen@example.com", "220 Main Street, Apt 4", "Hudson", "NY", "12534", "Buzzer 4.")
-    lila = _customer(db, "Lila Nguyen", "518-555-0130", "lila@example.com", "15 Willow Court", "Catskill", "NY", "12414", "")
+    lila = _customer(db, "Lila Nguyen", "518-555-0130", "lila@example.com", "15 Willow Court", "Catskill", "NY", "12414", "Prefers email for software work.")
     ruth = _customer(db, "Ruth Adler", "845-555-0188", "ruth@example.com", "77 West Chestnut Street", "Kingston", "NY", "12401", "")
 
     lila_job = _job(
-        db, shop, lila, "Door sweep and threshold",
-        "Front door is dragging. Replace the sweep and the oak threshold.",
-        "scheduled", "normal", _at(shop.timezone, -6, 10), tech,
-        customer_note="Please take the old sweep with you.",
+        db, shop, lila, "Booking page for the studio",
+        "A one-page site where clients request a visit. Include the phone number and a short form.",
+        "software", "paid", "normal", _at(shop.timezone, -6, 10), tech,
+        customer_note="Use the studio name on the page, not a personal name.",
         when=_at(shop.timezone, -6, 10),
     )
-    _line(db, lila_job, "labor", "Hang and trim the door", "1.50", 9500, 1)
-    _line(db, lila_job, "material", "Oak threshold", "1", 4200, 2)
-    _line(db, lila_job, "material", "Door sweep", "1", 1800, 3)
-    _finish(db, shop, lila_job, tech, paid=True, at=_at(shop.timezone, -6, 12))
+    _line(db, lila_job, "labor", "Design and build the page", "4", 12000, 1)
+    _line(db, lila_job, "other", "Domain for one year", "1", 2000, 2)
+    _finish(db, shop, lila_job, tech, paid=True, at=_at(shop.timezone, -6, 16))
 
     _job(
-        db, shop, marcus, "Mount a television",
+        db, shop, marcus, "Move the sofa upstairs",
         "Customer postponed until the new year.",
-        "cancelled", "low", None, None,
+        "errand", "cancelled", "low", None, None,
         customer_note="",
         when=_at(shop.timezone, -4, 9),
     )
 
     priya_job = _job(
-        db, shop, priya, "Bath fan replacement",
-        "Existing fan is loud. Replace with a quiet 110 CFM unit and a timer switch.",
-        "invoiced", "normal", _at(shop.timezone, -2, 9), tech,
-        customer_note="The fan is in the hall bath.",
+        db, shop, priya, "Swap the hallway thermostat",
+        "The old thermostat drifts. Replace it with the programmable unit Priya already bought.",
+        "hvac", "invoiced", "normal", _at(shop.timezone, -2, 9), tech,
+        customer_note="The furnace switch is at the top of the basement stairs.",
         when=_at(shop.timezone, -2, 9),
     )
-    _line(db, priya_job, "labor", "Replace fan and switch", "2.50", 9500, 1)
-    _line(db, priya_job, "material", "Bath fan", "1", 12600, 2)
+    _line(db, priya_job, "labor", "Install the thermostat", "1.50", 9500, 1)
+    _line(db, priya_job, "material", "Wall plate and wire nuts", "1", 890, 2)
     recalc_job(db, priya_job)
     ensure_invoice_number(db, shop, priya_job)
     db.add(Payment(
@@ -159,50 +158,48 @@ def _load_demo(db: Session, shop: Shop, settings: Settings) -> None:
     priya_job.completed_at = _at(shop.timezone, -2, 12)
 
     ruth_job = _job(
-        db, shop, ruth, "Sticking window sash",
-        "Kitchen window will not stay up. Free the sash and add a brass stop.",
-        "scheduled", "normal", _at(shop.timezone, -1, 11), tech,
-        customer_note="Call from the porch. The bell is out.",
+        db, shop, ruth, "Fix the contact form",
+        "The form on ruthadler.example submits and then shows a blank page. It should email Ruth.",
+        "software", "scheduled", "normal", _at(shop.timezone, -1, 11), tech,
+        customer_note="Please reply to ruth@example.com when it sends a test.",
         when=_at(shop.timezone, -1, 11),
     )
-    _line(db, ruth_job, "labor", "Free the sash and fit a stop", "1.25", 9500, 1)
-    _line(db, ruth_job, "material", "Brass sash stop", "1", 1400, 2)
+    _line(db, ruth_job, "labor", "Find the break and send a test", "2", 11000, 1)
     recalc_job(db, ruth_job)
 
     helen_job = _job(
-        db, shop, helen, "Kitchen faucet and supply lines",
-        "Replace the dripping kitchen faucet and both supply lines. Customer has the faucet on site.",
-        "scheduled", "normal", _at(shop.timezone, 0, 9), tech,
+        db, shop, helen, "Hang the dining room lights",
+        "Two new pendants over the table. Helen has the fixtures. The old box needs a brace.",
+        "house", "scheduled", "normal", _at(shop.timezone, 0, 9), tech,
         customer_note="Please text when you are on the way.",
         end=_at(shop.timezone, 0, 11),
         when=_at(shop.timezone, 0, 8),
     )
-    _line(db, helen_job, "labor", "Swap faucet and supply lines", "2", 9500, 1)
-    _line(db, helen_job, "material", "Braided supply lines", "2", 1800, 2)
-    _line(db, helen_job, "material", "Plumber's putty and tape", "1", 890, 3)
+    _line(db, helen_job, "labor", "Hang and level both pendants", "2", 8500, 1)
+    _line(db, helen_job, "material", "Box brace, wire nuts, and tape", "1", 2400, 2)
     recalc_job(db, helen_job)
-    db.add(JobNote(body="Shutoff is under the sink, left side.", job=helen_job, author_id=tech.id))
+    db.add(JobNote(body="The dining room breaker is in the hall closet, second row.", job=helen_job, author_id=tech.id))
 
     marcus_job = _job(
-        db, shop, marcus, "Deck stair railing",
-        "Rebuild the stair railing with cedar posts and a graspable handrail. Stairs are already sound.",
-        "in_progress", "urgent", _at(shop.timezone, 0, 13), tech,
-        customer_note="Leave the offcuts stacked by the shed.",
-        end=_at(shop.timezone, 0, 16, 30),
+        db, shop, marcus, "Cut back the side hedge",
+        "The hedge is over the walk. Cut it back, rake the clippings, and spread the mulch already on site.",
+        "yard", "in_progress", "urgent", _at(shop.timezone, 0, 13), tech,
+        customer_note="Leave the clippings in the bins by the shed.",
+        end=_at(shop.timezone, 0, 16),
         when=_at(shop.timezone, -1, 15),
     )
-    _line(db, marcus_job, "labor", "Rebuild stair railing", "6", 9500, 1)
-    _line(db, marcus_job, "material", "Cedar posts, rail, and hardware", "1", 24000, 2)
+    _line(db, marcus_job, "labor", "Cut, rake, and mulch", "3", 7500, 1)
+    _line(db, marcus_job, "material", "Extra mulch", "1", 6400, 2)
     recalc_job(db, marcus_job)
 
     owen_job = _job(
-        db, shop, owen, "Drywall patch after a leak",
-        "Patch the hallway ceiling where a supply line dripped. Prime only; the customer will paint.",
-        "inquiry", "normal", None, None,
+        db, shop, owen, "Spring bed cleanup",
+        "Cut back the perennials along the front walk and edge the bed. No new plants.",
+        "yard", "inquiry", "normal", None, None,
         customer_note="",
         when=utcnow(),
     )
-    _line(db, owen_job, "labor", "Cut, tape, and skim", "3", 8500, 1)
+    _line(db, owen_job, "labor", "Cut back and edge", "4", 7000, 1)
     recalc_job(db, owen_job)
 
 
@@ -223,11 +220,12 @@ def _customer(db, name, phone, email, line, city, region, postal, notes) -> Cust
     return customer
 
 
-def _job(db, shop, customer, title, description, status, priority, start, assignee, customer_note, end=None, when=None) -> Job:
+def _job(db, shop, customer, title, description, category, status, priority, start, assignee, customer_note, end=None, when=None) -> Job:
     job = Job(
         number=allocate_number(db, shop, "job"),
         customer_id=customer.id,
         title=title,
+        category=category,
         description=description,
         status=status,
         priority=priority,

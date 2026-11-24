@@ -252,10 +252,22 @@ td { padding: 12px 14px; border-top: 1px solid var(--line); vertical-align: top;
 .pill-invoiced { color: #6d3c18; background: #f6e6d8; }
 .pill-paid { color: #17633f; background: #def3e6; }
 .pill-cancelled { color: #6b645b; background: #ece8e2; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #efe8dc;
+  color: #5c5348;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 .urgent { color: var(--bad); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 
 .filters, .form-grid, .stack { display: grid; gap: 14px; }
-.filters { grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(140px, 0.7fr)) auto; align-items: end; margin-bottom: 16px; }
+.filters { grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(120px, 0.7fr)) auto; align-items: end; margin-bottom: 16px; }
 .form-grid { grid-template-columns: 1fr 1fr; }
 .span-2 { grid-column: span 2; }
 label { display: grid; gap: 6px; font-weight: 600; font-size: 0.92rem; }

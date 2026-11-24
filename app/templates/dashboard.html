@@ -48,7 +48,7 @@
           <span class="when">{{ job.scheduled_start|clock(shop.timezone) }}</span>
           <span>
             <strong>{{ job.title }}</strong>
-            <em>{{ job.customer.name }}{% if job.assignee %} · {{ job.assignee.name }}{% endif %}</em>
+            <em>{{ CATEGORY_LABELS.get(job.category, job.category) }} · {{ job.customer.name }}{% if job.assignee %} · {{ job.assignee.name }}{% endif %}</em>
           </span>
           {{ status_pill(job.status) }}
         </a>
@@ -72,7 +72,7 @@
           <span class="when">{{ balance_cents(job)|money }}</span>
           <span>
             <strong>{{ job.title }}</strong>
-            <em>{{ job.customer.name }} · {{ job.number }}</em>
+            <em>{{ CATEGORY_LABELS.get(job.category, job.category) }} · {{ job.customer.name }} · {{ job.number }}</em>
           </span>
           {{ status_pill(job.status) }}
         </a>
@@ -94,7 +94,7 @@
         <span class="when">{{ job.scheduled_start|when(shop.timezone) }}</span>
         <span>
           <strong>{{ job.title }}</strong>
-          <em>{{ job.customer.name }}</em>
+          <em>{{ CATEGORY_LABELS.get(job.category, job.category) }} · {{ job.customer.name }}</em>
         </span>
         {{ status_pill(job.status) }}
       </a>

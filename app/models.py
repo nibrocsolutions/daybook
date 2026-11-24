@@ -52,7 +52,7 @@ class Shop(Base):
     __tablename__ = "shop"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
-    business_name: Mapped[str] = mapped_column(String(120), default="Fieldbook")
+    business_name: Mapped[str] = mapped_column(String(120), default="Daybook")
     phone: Mapped[str] = mapped_column(String(40), default="")
     email: Mapped[str] = mapped_column(String(254), default="")
     address: Mapped[str] = mapped_column(Text, default="")
@@ -124,6 +124,10 @@ class Job(Base):
             name="ck_jobs_status",
         ),
         CheckConstraint("priority in ('low', 'normal', 'urgent')", name="ck_jobs_priority"),
+        CheckConstraint(
+            "category in ('house', 'yard', 'hvac', 'software', 'errand', 'other')",
+            name="ck_jobs_category",
+        ),
         Index("ix_jobs_status_schedule", "status", "scheduled_start"),
     )
 
@@ -132,6 +136,7 @@ class Job(Base):
     invoice_number: Mapped[str | None] = mapped_column(String(24), nullable=True)
     customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), index=True)
     title: Mapped[str] = mapped_column(String(140))
+    category: Mapped[str] = mapped_column(String(20), default="other")
     description: Mapped[str] = mapped_column(Text, default="")
     service_address: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(20), default="inquiry", index=True)

@@ -24,7 +24,7 @@ def test_health_and_security_headers(client):
 
 
 def test_login_failure_does_not_reveal_the_account(client):
-    missing = login(client, "nobody@fieldbook.test", "not-the-password")
+    missing = login(client, "nobody@daybook.test", "not-the-password")
     assert missing.status_code == 400
     assert "do not match" in missing.text
     assert "inactive" not in missing.text.lower()
@@ -67,6 +67,7 @@ def test_job_ledger_payment_and_invoice(admin):
         {
             "customer_id": customer_id,
             "title": "Kitchen faucet",
+            "category": "house",
             "description": "Replace the faucet.",
             "service_address": "",
             "priority": "normal",
@@ -93,6 +94,9 @@ def test_job_ledger_payment_and_invoice(admin):
     page = admin.get(job_url)
     assert page.status_code == 200
     assert "$155.00" in page.text
+    assert "House" in page.text
+    assert "Kitchen faucet" in admin.get("/jobs?category=house").text
+    assert "Kitchen faucet" not in admin.get("/jobs?category=software").text
     tokens = re.findall(r'name="csrf_token" value="([^"]*)"', page.text)
     assert len(tokens) > 3
     assert all(len(token) >= 20 for token in tokens)
@@ -122,7 +126,7 @@ def test_technician_cannot_administer_or_refund(admin, app):
         "/admin/users",
         {
             "name": "Sam Rivera",
-            "email": "sam@fieldbook.test",
+            "email": "sam@daybook.test",
             "role": "technician",
             "password": "field-tech-pass",
             "confirm": "field-tech-pass",
@@ -130,7 +134,7 @@ def test_technician_cannot_administer_or_refund(admin, app):
         },
     )
     with TestClient(app) as tech:
-        assert login(tech, "sam@fieldbook.test", "field-tech-pass").status_code == 303
+        assert login(tech, "sam@daybook.test", "field-tech-pass").status_code == 303
         assert tech.get("/admin/users").status_code == 403
         assert tech.get("/").status_code == 200
         denied = submit(tech, "/admin/export", {"format": "json"})
@@ -165,7 +169,7 @@ def test_technician_cannot_administer_or_refund(admin, app):
     page = admin.get(job_url)
     assert "Refund" in page.text
     with TestClient(app) as tech:
-        login(tech, "sam@fieldbook.test", "field-tech-pass")
+        login(tech, "sam@daybook.test", "field-tech-pass")
         tech_page = tech.get(job_url)
         assert "Refund" not in tech_page.text
         payment_id = app.state.SessionLocal().query(Payment).one().id
@@ -345,7 +349,7 @@ def submit_file(client, payload):
     return client.post(
         "/admin/import",
         data={"csrf_token": csrf(page.text)},
-        files={"backup": ("fieldbook.json", json.dumps(payload), "application/json")},
+        files={"backup": ("daybook.json", json.dumps(payload), "application/json")},
         follow_redirects=False,
     )
 

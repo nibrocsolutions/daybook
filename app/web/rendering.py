@@ -11,6 +11,8 @@ from markupsafe import Markup, escape
 from sqlalchemy.orm import Session
 
 from app.constants import (
+    CATEGORIES,
+    CATEGORY_LABELS,
     KIND_LABELS,
     LINE_KINDS,
     METHOD_LABELS,
@@ -71,6 +73,8 @@ templates.env.filters["clock"] = _clock
 templates.env.filters["qty"] = format_quantity
 templates.env.globals.update(
     {
+        "CATEGORIES": CATEGORIES,
+        "CATEGORY_LABELS": CATEGORY_LABELS,
         "STATUS_LABELS": STATUS_LABELS,
         "STATUSES": STATUSES,
         "PRIORITIES": PRIORITIES,
@@ -134,7 +138,7 @@ def render(request: Request, db: Session, name: str, status_code: int = 200, **c
         "csrf_token": ensure_csrf(request),
         "user": user,
         "shop": shop,
-        "business_name": shop.business_name if shop else "Fieldbook",
+        "business_name": shop.business_name if shop else "Daybook",
         "nav": nav,
         "admin_nav": admin_nav,
         "account_active": request.url.path.startswith("/account"),

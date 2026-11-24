@@ -8,6 +8,7 @@
     <h1>{{ job.title }}</h1>
     <p class="meta-line">
       {{ status_pill(job.status) }}
+      <span class="chip">{{ CATEGORY_LABELS.get(job.category, job.category) }}</span>
       {% if job.priority == "urgent" %}<span class="urgent">Urgent</span>{% endif %}
       <a href="/customers/{{ job.customer.id }}">{{ job.customer.name }}</a>
     </p>
@@ -135,7 +136,7 @@
       </form>
     </section>
     <section class="card">
-      <h2>Crew notes</h2>
+      <h2>Internal notes</h2>
       <p class="help">These stay off the invoice.</p>
       {% if job.notes %}
       <ul class="note-list">
@@ -163,7 +164,7 @@
         {% for event in job.events %}
         <li>
           <p>{{ event.message }}</p>
-          <p class="help">{{ event.actor.name if event.actor else "Fieldbook" }} · {{ event.created_at|when(shop.timezone) }}</p>
+          <p class="help">{{ event.actor.name if event.actor else "Daybook" }} · {{ event.created_at|when(shop.timezone) }}</p>
         </li>
         {% endfor %}
       </ol>

@@ -57,9 +57,9 @@ class Settings:
         base = os.environ.get("APP_BASE_URL", "http://localhost:8000").strip().rstrip("/")
         return cls(
             env=env,
-            database_url=os.environ.get("DATABASE_URL", "sqlite:///./fieldbook.db").strip(),
+            database_url=os.environ.get("DATABASE_URL", "sqlite:///./daybook.db").strip(),
             session_secret=secret,
-            admin_email=os.environ.get("ADMIN_EMAIL", "owner@fieldbook.local").strip().lower(),
+            admin_email=os.environ.get("ADMIN_EMAIL", "owner@daybook.local").strip().lower(),
             admin_password=os.environ.get("ADMIN_PASSWORD", "change-this-password"),
             admin_name=os.environ.get("ADMIN_NAME", "Avery Lang").strip() or "Avery Lang",
             seed_demo=env_bool("SEED_DEMO", False),

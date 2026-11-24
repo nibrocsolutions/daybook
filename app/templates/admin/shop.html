@@ -44,7 +44,7 @@
   </label>
   <label class="check span-2">
     <input type="checkbox" name="tax_labor" value="1" {% if values.tax_labor == "1" %}checked{% endif %}>
-    <span>Tax labor as well as materials. Uncheck where labor is exempt.</span>
+    <span>Tax time as well as materials. Uncheck where time is exempt.</span>
   </label>
   <label>
     <span>Job prefix</span>
@@ -79,6 +79,6 @@
       <dd>{% if stripe.ready %}Saved on the server{% else %}Not set{% endif %}</dd>
     </div>
   </dl>
-  <p class="help">Fieldbook reads <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>, and <code>APP_BASE_URL</code> from the environment. Secret keys are never stored in the database or shown here.</p>
+  <p class="help">Daybook reads <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>, and <code>APP_BASE_URL</code> from the environment. Secret keys are never stored in the database or shown here.</p>
 </section>
 {% endblock %}

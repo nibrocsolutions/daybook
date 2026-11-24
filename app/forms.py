@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from app.constants import LINE_KINDS, MAX_MONEY_CENTS, MANUAL_METHODS, PRIORITIES, ROLES, STATUSES
+from app.constants import CATEGORIES, LINE_KINDS, MAX_MONEY_CENTS, MANUAL_METHODS, PRIORITIES, ROLES, STATUSES
 from app.formatting import clean_timezone, format_percent
 from app.security import password_problem
 
@@ -23,6 +23,7 @@ _WHEN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}\Z")
 class JobInput:
     customer_id: str
     title: str
+    category: str
     description: str
     service_address: str
     priority: str
@@ -136,6 +137,7 @@ def raw_form(form, names: list[str]) -> dict[str, str]:
 JOB_FIELDS = [
     "customer_id",
     "title",
+    "category",
     "description",
     "service_address",
     "priority",
@@ -165,6 +167,13 @@ def parse_job_form(form, tz, customer_ids: set[str], user_ids: set[str], *, with
         errors["title"] = "Give the job a short title."
     elif len(raw["title"].strip()) > 140:
         errors["title"] = "Keep the title under 140 characters."
+    if not raw["category"].strip():
+        category = "other"
+    elif raw["category"] in CATEGORIES:
+        category = raw["category"]
+    else:
+        category = "other"
+        errors["category"] = "Choose the kind of work."
     priority = raw["priority"] if raw["priority"] in PRIORITIES else ""
     if not priority:
         errors["priority"] = "Choose a priority."
@@ -214,9 +223,9 @@ def parse_job_form(form, tz, customer_ids: set[str], user_ids: set[str], *, with
     line_price = None
     if with_line and any(raw[name].strip() for name in ("line_description", "line_quantity", "line_unit_price")):
         if not line_description:
-            errors["line_description"] = "Describe the labor or material."
+            errors["line_description"] = "Describe the line."
         if raw["line_kind"] and raw["line_kind"] not in LINE_KINDS:
-            errors["line_kind"] = "Choose labor, material, or other."
+            errors["line_kind"] = "Choose time, materials, or other."
         try:
             line_quantity = parse_quantity(raw["line_quantity"])
         except ValueError as exc:
@@ -231,6 +240,7 @@ def parse_job_form(form, tz, customer_ids: set[str], user_ids: set[str], *, with
         JobInput(
             customer_id=customer_id,
             title=title,
+            category=category,
             description=description,
             service_address=service_address,
             priority=priority,
@@ -257,9 +267,9 @@ def parse_line_form(form) -> tuple[LineInput | None, dict[str, str]]:
     description = clean_text(str(form.get("description") or ""), 200)
     kind = str(form.get("kind") or "labor")
     if not description:
-        errors["description"] = "Describe the labor or material."
+        errors["description"] = "Describe the line."
     if kind not in LINE_KINDS:
-        errors["kind"] = "Choose labor, material, or other."
+        errors["kind"] = "Choose time, materials, or other."
         kind = "labor"
     try:
         quantity = parse_quantity(str(form.get("quantity") or ""))
@@ -433,6 +443,7 @@ def job_form_defaults(shop, customer_id: str = "") -> dict[str, str]:
     return {
         "customer_id": customer_id,
         "title": "",
+        "category": "other",
         "description": "",
         "service_address": "",
         "priority": "normal",

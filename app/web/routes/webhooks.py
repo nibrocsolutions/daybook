@@ -13,7 +13,7 @@ from app.services.stripe_billing import apply_checkout_session, construct_event,
 from app.web.deps import get_db
 
 router = APIRouter()
-log = logging.getLogger("fieldbook.stripe")
+log = logging.getLogger("daybook.stripe")
 
 
 @router.post("/webhooks/stripe")

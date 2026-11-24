@@ -229,16 +229,16 @@ async def export_data(request: Request, db: Session = Depends(get_db)):
     stamp = datetime.now().date().isoformat()
     if kind == "jobs-csv":
         body = "\ufeff" + jobs_csv(db)
-        return _download(body, f"fieldbook-jobs-{stamp}.csv", "text/csv; charset=utf-8")
+        return _download(body, f"daybook-jobs-{stamp}.csv", "text/csv; charset=utf-8")
     if kind == "customers-csv":
         body = "\ufeff" + customers_csv(db)
-        return _download(body, f"fieldbook-customers-{stamp}.csv", "text/csv; charset=utf-8")
+        return _download(body, f"daybook-customers-{stamp}.csv", "text/csv; charset=utf-8")
     if kind == "payments-csv":
         body = "\ufeff" + payments_csv(db)
-        return _download(body, f"fieldbook-payments-{stamp}.csv", "text/csv; charset=utf-8")
+        return _download(body, f"daybook-payments-{stamp}.csv", "text/csv; charset=utf-8")
     payload = export_payload(db)
     body = json.dumps(payload, indent=2)
-    return _download(body, f"fieldbook-backup-{stamp}.json", "application/json")
+    return _download(body, f"daybook-backup-{stamp}.json", "application/json")
 
 
 @router.post("/import")
@@ -248,7 +248,7 @@ async def import_data(request: Request, db: Session = Depends(get_db)):
     upload = form.get("backup")
     filename = getattr(upload, "filename", "") or ""
     if not hasattr(upload, "read") or not filename.lower().endswith(".json"):
-        flash(request, "Choose a Fieldbook JSON backup.", "error")
+        flash(request, "Choose a Daybook JSON backup.", "error")
         return go("/admin/backup")
     raw = await upload.read(MAX_BACKUP_BYTES + 1)
     if len(raw) > MAX_BACKUP_BYTES:
@@ -259,7 +259,7 @@ async def import_data(request: Request, db: Session = Depends(get_db)):
         result = import_payload(db, payload)
     except (UnicodeDecodeError, json.JSONDecodeError):
         db.rollback()
-        flash(request, "That file is not Fieldbook JSON. Nothing was changed.", "error")
+        flash(request, "That file is not Daybook JSON. Nothing was changed.", "error")
         return go("/admin/backup")
     except BackupError as exc:
         db.rollback()
@@ -284,7 +284,7 @@ async def sample_delete(request: Request, db: Session = Depends(get_db)):
 def _shop_values(shop: Shop | None) -> dict[str, str]:
     if shop is None:
         return {
-            "business_name": "Fieldbook",
+            "business_name": "Daybook",
             "phone": "",
             "email": "",
             "address": "",

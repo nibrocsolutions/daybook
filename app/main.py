@@ -1,4 +1,4 @@
-"""Fieldbook application factory."""
+"""Daybook application factory."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ from app.web.routes.jobs import router as jobs_router
 from app.web.routes.payments import router as payments_router
 from app.web.routes.webhooks import router as webhooks_router
 
-log = logging.getLogger("fieldbook")
+log = logging.getLogger("daybook")
 CSP = (
     "default-src 'self'; "
     "img-src 'self' data:; "
@@ -114,7 +114,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
     engine = make_engine(settings.database_url)
     init_database(engine, settings.database_url)
-    app = FastAPI(title="Fieldbook", docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(title="Daybook", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.settings = settings
     app.state.engine = engine
     app.state.SessionLocal = make_session_factory(engine)
@@ -124,7 +124,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret,
-        session_cookie="fieldbook_session",
+        session_cookie="daybook_session",
         max_age=14 * 24 * 60 * 60,
         same_site="lax",
         https_only=settings.secure_cookies,
@@ -191,7 +191,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse({"error": "server error"}, status_code=500)
         return await error_page(request, 500, "Something went wrong", "Try that again in a moment.")
 
-    log.info("Fieldbook ready")
+    log.info("Daybook ready")
     return app
 
 
@@ -220,16 +220,29 @@ async def error_page(request: Request, status: int, title: str, message: str) ->
 
 def init_database(engine, url: str) -> None:
     import app.models  # noqa: F401
+    from sqlalchemy import inspect, text
 
     attempts = 1 if url.startswith("sqlite") else 20
     for attempt in range(attempts):
         try:
             Base.metadata.create_all(engine)
+            _ensure_job_category(engine, inspect, text)
             return
         except OperationalError:
             if attempt == attempts - 1:
                 raise
             time.sleep(1)
+
+
+def _ensure_job_category(engine, inspect, text) -> None:
+    """Add kind-of-work on databases created before that column existed."""
+    if not inspect(engine).has_table("jobs"):
+        return
+    names = {column["name"] for column in inspect(engine).get_columns("jobs")}
+    if "category" in names:
+        return
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE jobs ADD COLUMN category VARCHAR(20) NOT NULL DEFAULT 'other'"))
 
 
 app = create_app()
