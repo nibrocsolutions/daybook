@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == "new" %}Add customer{% else %}Edit {{ customer.name }}{% endif %}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Customer</p>
+    <h1>{% if mode == "new" %}Add a customer{% else %}Edit customer{% endif %}</h1>
+  </div>
+</header>
+<form method="post" action="{% if mode == 'new' %}/customers{% else %}/customers/{{ customer.id }}{% endif %}" class="card form-grid">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label class="span-2">
+    <span>Name</span>
+    <input name="name" required maxlength="120" value="{{ values.name }}">
+    {% if errors.name %}<span class="field-error">{{ errors.name }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Phone</span>
+    <input name="phone" value="{{ values.phone }}" autocomplete="tel">
+    {% if errors.phone %}<span class="field-error">{{ errors.phone }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Email</span>
+    <input type="email" name="email" value="{{ values.email }}" autocomplete="email">
+    {% if errors.email %}<span class="field-error">{{ errors.email }}</span>{% endif %}
+  </label>
+  <label class="span-2">
+    <span>Street</span>
+    <input name="address_line" value="{{ values.address_line }}">
+  </label>
+  <label>
+    <span>City</span>
+    <input name="city" value="{{ values.city }}">
+  </label>
+  <label>
+    <span>State / region</span>
+    <input name="region" value="{{ values.region }}">
+  </label>
+  <label>
+    <span>Postal code</span>
+    <input name="postal_code" value="{{ values.postal_code }}">
+  </label>
+  <label class="span-2">
+    <span>Notes</span>
+    <textarea name="notes">{{ values.notes }}</textarea>
+  </label>
+  {% if mode == "edit" and user.role == "admin" and (customer.is_sample or values.is_sample == "1") %}
+  <label class="check span-2">
+    <input type="checkbox" name="is_sample" value="1" {% if values.is_sample == "1" %}checked{% endif %}>
+    <span>Sample record. Uncheck to keep it when sample data is removed.</span>
+  </label>
+  {% endif %}
+  <div class="span-2 form-actions">
+    <button class="btn" type="submit">{% if mode == "new" %}Add customer{% else %}Save customer{% endif %}</button>
+    {% if customer %}<a class="btn secondary" href="/customers/{{ customer.id }}">Cancel</a>{% endif %}
+  </div>
+</form>
+{% endblock %}

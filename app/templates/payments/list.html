@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import status_pill %}
+{% block title %}Payments{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Payments</p>
+    <h1>{{ due_cents|money }} to collect</h1>
+    <p class="help">Finished work that still has a balance. Card payments use Stripe when the server has keys.</p>
+  </div>
+</header>
+<section class="card">
+  {% if due_jobs %}
+  <ul class="run-list">
+    {% for job in due_jobs %}
+    <li>
+      <a href="/jobs/{{ job.id }}">
+        <span class="when">{{ balance_cents(job)|money }}</span>
+        <span>
+          <strong>{{ job.title }}</strong>
+          <em>{{ job.customer.name }} · {{ job.number }}</em>
+        </span>
+        {{ status_pill(job.status) }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">Nothing is waiting on finished work.</p>
+  {% endif %}
+</section>
+<section class="card later">
+  <h2>Recent payments</h2>
+  {% if recent %}
+  <div class="table-wrap plain">
+    <table>
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Job</th>
+          <th>Method</th>
+          <th>Status</th>
+          <th class="money">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in recent %}
+        <tr>
+          <td>{{ payment.received_at|when(shop.timezone) if payment.received_at else payment.created_at|when(shop.timezone) }}</td>
+          <td>{% if payment.job %}<a href="/jobs/{{ payment.job.id }}">{{ payment.job.number }}</a>{% else %}—{% endif %}</td>
+          <td>{{ METHOD_LABELS.get(payment.method, payment.method) }}</td>
+          <td>{{ payment.status }}</td>
+          <td class="money">{{ payment.amount_cents|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No payments recorded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

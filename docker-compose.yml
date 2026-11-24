@@ -1,0 +1,48 @@
+# Local defaults are for one computer. Read the README before exposing this beyond localhost.
+name: fieldbook
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fieldbook
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fieldbook}
+      POSTGRES_DB: fieldbook
+    volumes:
+      - fieldbook-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fieldbook -d fieldbook"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      ENV: ${ENV:-development}
+      DATABASE_URL: postgresql+psycopg://fieldbook:${POSTGRES_PASSWORD:-fieldbook}@db:5432/fieldbook
+      SESSION_SECRET: ${SESSION_SECRET:-dev-only-session-secret}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-owner@fieldbook.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-password}
+      ADMIN_NAME: ${ADMIN_NAME:-Avery Lang}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8000}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/New_York}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  fieldbook-db:

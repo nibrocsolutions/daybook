@@ -1,0 +1,38 @@
+<aside class="sidebar">
+  <a class="brand" href="/">
+    <span class="mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="28" height="28">
+        <rect x="6" y="4" width="20" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M12 4v24M16 11h6M16 16h6M16 21h4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      </svg>
+    </span>
+    <span>
+      <span class="product">Fieldbook</span>
+      <span class="shop-name">{{ business_name }}</span>
+    </span>
+  </a>
+  <nav class="nav-list" aria-label="Main">
+    {% for href, label, active in nav %}
+    <a class="nav-link{% if active %} active{% endif %}" href="{{ href }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+  {% if admin_nav %}
+  <p class="nav-label">Admin</p>
+  <nav class="nav-list" aria-label="Admin">
+    {% for href, label, active in admin_nav %}
+    <a class="nav-link{% if active %} active{% endif %}" href="{{ href }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+  <div class="user-block">
+    <p class="user-name">{{ user.name }}</p>
+    <p class="user-role">{{ ROLE_LABELS.get(user.role, user.role) }}</p>
+    <div class="user-links">
+      <a href="/account"{% if account_active %} aria-current="page"{% endif %}>Account</a>
+      <form method="post" action="/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="linkish">Sign out</button>
+      </form>
+    </div>
+  </div>
+</aside>

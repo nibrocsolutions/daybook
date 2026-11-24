@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import status_pill %}
+{% block title %}{{ customer.name }}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Customer{% if customer.is_sample %} · Sample{% endif %}</p>
+    <h1>{{ customer.name }}</h1>
+  </div>
+  <div class="head-actions">
+    <a class="btn" href="/jobs/new?customer={{ customer.id }}">New job</a>
+    <a class="btn secondary" href="/customers/{{ customer.id }}/edit">Edit</a>
+  </div>
+</header>
+<section class="card">
+  <dl class="facts">
+    <div>
+      <dt>Phone</dt>
+      <dd>
+        {% set tel = tel_href(customer.phone) %}
+        {% if tel %}<a href="{{ tel }}">{{ customer.phone }}</a>{% else %}{{ customer.phone or "—" }}{% endif %}
+      </dd>
+    </div>
+    <div>
+      <dt>Email</dt>
+      <dd>
+        {% set mail = mailto_href(customer.email) %}
+        {% if mail %}<a href="{{ mail }}">{{ customer.email }}</a>{% else %}{{ customer.email or "—" }}{% endif %}
+      </dd>
+    </div>
+    <div>
+      <dt>Address</dt>
+      <dd class="prose">{{ customer.postal_address or "—" }}
+        {% set map = maps_url(customer.postal_address) %}
+        {% if map %}<a href="{{ map }}" target="_blank" rel="noopener noreferrer">Map</a>{% endif %}
+      </dd>
+    </div>
+  </dl>
+  {% if customer.notes %}<p class="prose">{{ customer.notes }}</p>{% endif %}
+</section>
+<section class="card later">
+  <h2>Jobs</h2>
+  {% if jobs %}
+  <ul class="run-list">
+    {% for job in jobs %}
+    <li>
+      <a href="/jobs/{{ job.id }}">
+        <span class="when">{{ job.number }}</span>
+        <span>
+          <strong>{{ job.title }}</strong>
+          <em>{{ job.scheduled_start|when(shop.timezone) }} · {{ balance_cents(job)|money }} due</em>
+        </span>
+        {{ status_pill(job.status) }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">No jobs for this customer yet.</p>
+  {% endif %}
+  {% if user.role == "admin" %}
+  <form method="post" action="/customers/{{ customer.id }}/delete" data-confirm="Delete {{ customer.name }}? This only works when they have no jobs.">
+    {{ csrf() }}
+    <button class="btn tiny danger" type="submit">Delete customer</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == "new" %}Add person{% else %}Edit {{ subject.name }}{% endif %}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Users</p>
+    <h1>{% if mode == "new" %}Add a person{% else %}Edit {{ subject.name }}{% endif %}</h1>
+  </div>
+</header>
+<form method="post" action="{% if mode == 'new' %}/admin/users{% else %}/admin/users/{{ subject.id }}{% endif %}" class="card form-grid">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>
+    <span>Name</span>
+    <input name="name" required value="{{ values.name }}">
+    {% if errors.name %}<span class="field-error">{{ errors.name }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Email</span>
+    <input type="email" name="email" required value="{{ values.email }}" autocomplete="off">
+    {% if errors.email %}<span class="field-error">{{ errors.email }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Role</span>
+    <select name="role">
+      {% for item in ROLES %}
+      <option value="{{ item }}" {% if values.role == item %}selected{% endif %}>{{ ROLE_LABELS[item] }}</option>
+      {% endfor %}
+    </select>
+    {% if errors.role %}<span class="field-error">{{ errors.role }}</span>{% endif %}
+  </label>
+  <label class="check">
+    <input type="checkbox" name="active" value="1" {% if values.active == "1" %}checked{% endif %}>
+    <span>Active and allowed to sign in</span>
+    {% if errors.active %}<span class="field-error">{{ errors.active }}</span>{% endif %}
+  </label>
+  <label>
+    <span>{% if mode == "new" %}Password{% else %}New password{% endif %}</span>
+    <input type="password" name="password" autocomplete="new-password" {% if mode == "new" %}required{% endif %}>
+    {% if mode == "edit" %}<span class="help">Leave blank to keep the current password.</span>{% endif %}
+    {% if errors.password %}<span class="field-error">{{ errors.password }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Confirm password</span>
+    <input type="password" name="confirm" autocomplete="new-password" {% if mode == "new" %}required{% endif %}>
+    {% if errors.confirm %}<span class="field-error">{{ errors.confirm }}</span>{% endif %}
+  </label>
+  <div class="span-2 form-actions">
+    <button class="btn" type="submit">{% if mode == "new" %}Add person{% else %}Save person{% endif %}</button>
+    <a class="btn secondary" href="/admin/users">Cancel</a>
+  </div>
+</form>
+{% endblock %}

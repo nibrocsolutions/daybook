@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import status_pill %}
+{% block title %}Jobs{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Jobs</p>
+    <h1>The book</h1>
+  </div>
+  <a class="btn" href="/jobs/new">New job</a>
+</header>
+<form class="filters" method="get" action="/jobs">
+  <label>
+    <span>Search</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="Name, title, or job number">
+  </label>
+  <label>
+    <span>Status</span>
+    <select name="status">
+      <option value="" {% if not status %}selected{% endif %}>Open work</option>
+      <option value="all" {% if status == "all" %}selected{% endif %}>Everything</option>
+      {% for item in STATUSES %}
+      <option value="{{ item }}" {% if status == item %}selected{% endif %}>{{ STATUS_LABELS[item] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    <span>Assigned</span>
+    <select name="assignee">
+      <option value="">Anyone</option>
+      <option value="me" {% if assignee == "me" %}selected{% endif %}>Me</option>
+      {% for person in assignees %}
+      <option value="{{ person.id }}" {% if assignee == person.id %}selected{% endif %}>{{ person.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="btn secondary" type="submit">Filter</button>
+</form>
+{% if jobs %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Job</th>
+        <th>Customer</th>
+        <th class="hide-sm">When</th>
+        <th>Status</th>
+        <th class="hide-sm">Assigned</th>
+        <th class="money">Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td>
+          <a href="/jobs/{{ job.id }}"><strong>{{ job.title }}</strong></a>
+          <div class="num">{{ job.number }}{% if job.priority == "urgent" %} · <span class="urgent">Urgent</span>{% endif %}</div>
+        </td>
+        <td>{{ job.customer.name }}</td>
+        <td class="hide-sm">{{ job.scheduled_start|when(shop.timezone) }}</td>
+        <td>{{ status_pill(job.status) }}</td>
+        <td class="hide-sm">{{ job.assignee.name if job.assignee else "—" }}</td>
+        <td class="money">{{ balance_cents(job)|money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="help tally-note">{{ total }} {% if total == 1 %}job{% else %}jobs{% endif %}</p>
+{% if pages > 1 %}
+<nav class="pager" aria-label="Pages">
+  {% if prev_url %}<a href="{{ prev_url }}">Previous</a>{% endif %}
+  <span>Page {{ page }} of {{ pages }}</span>
+  {% if next_url %}<a href="{{ next_url }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<p class="empty">No jobs match this view. <a href="/jobs/new">Open a job</a> or clear the filter.</p>
+{% endif %}
+{% endblock %}

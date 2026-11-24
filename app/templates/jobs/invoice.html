@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Invoice {{ job.invoice_number or job.number }}{% endblock %}
+{% block content %}
+<article class="sheet">
+  <header class="invoice-head">
+    <div>
+      <p class="product-kicker">{{ business_name }}</p>
+      <p class="prose">{{ shop.address }}</p>
+      {% if shop.phone %}<p>{{ shop.phone }}</p>{% endif %}
+      {% if shop.email %}<p>{{ shop.email }}</p>{% endif %}
+    </div>
+    <div class="invoice-meta">
+      {% if balance <= 0 and job.total_cents > 0 %}<p class="paid-stamp">Paid</p>{% endif %}
+      <h1>Invoice</h1>
+      <p>{{ job.invoice_number or "Not invoiced yet" }}</p>
+      <p class="help">{{ job.number }}</p>
+    </div>
+  </header>
+  <section class="invoice-to">
+    <h2>Bill to</h2>
+    <p><strong>{{ job.customer.name }}</strong></p>
+    <p class="prose">{{ job.display_address }}</p>
+    {% if job.customer.email %}<p>{{ job.customer.email }}</p>{% endif %}
+  </section>
+  <h2>{{ job.title }}</h2>
+  {% if job.description %}<p class="prose">{{ job.description }}</p>{% endif %}
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Kind</th>
+        <th class="money">Qty</th>
+        <th class="money">Price</th>
+        <th class="money">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line in job.lines %}
+      <tr>
+        <td>{{ line.description }}</td>
+        <td>{{ KIND_LABELS[line.kind] }}</td>
+        <td class="money">{{ line.quantity|qty }}</td>
+        <td class="money">{{ line.unit_price_cents|money }}</td>
+        <td class="money">{{ line_amount(line)|money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="tally invoice-tally">
+    <div><span>Subtotal</span><span>{{ job.subtotal_cents|money }}</span></div>
+    <div><span>Tax {{ tax_caption(job.tax_rate_bps, job.tax_labor) }}</span><span>{{ job.tax_cents|money }}</span></div>
+    {% if job.discount_cents %}<div><span>Discount</span><span>-{{ job.discount_cents|money }}</span></div>{% endif %}
+    <div class="grand"><span>Total</span><span>{{ job.total_cents|money }}</span></div>
+    <div><span>Paid</span><span>{{ paid|money }}</span></div>
+    <div class="due"><span>Balance due</span><span>{{ balance|money }}</span></div>
+  </div>
+  {% if job.customer_note %}
+  <p class="prose note-for-customer">{{ job.customer_note }}</p>
+  {% endif %}
+  <p class="help">Payment is due on receipt. Amounts are in US dollars.</p>
+  <div class="no-print form-actions">
+    <button class="btn" type="button" data-print>Print</button>
+    <a class="btn secondary" href="/jobs/{{ job.id }}">Back to the job</a>
+  </div>
+</article>
+{% endblock %}

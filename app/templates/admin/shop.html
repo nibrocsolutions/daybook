@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Shop{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">Admin</p>
+    <h1>Shop profile</h1>
+  </div>
+</header>
+<form method="post" action="/admin/shop" class="card form-grid">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label class="span-2">
+    <span>Business name</span>
+    <input name="business_name" required value="{{ values.business_name }}">
+    {% if errors.business_name %}<span class="field-error">{{ errors.business_name }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Phone</span>
+    <input name="phone" value="{{ values.phone }}">
+  </label>
+  <label>
+    <span>Email</span>
+    <input type="email" name="email" value="{{ values.email }}">
+    {% if errors.email %}<span class="field-error">{{ errors.email }}</span>{% endif %}
+  </label>
+  <label class="span-2">
+    <span>Address</span>
+    <textarea name="address">{{ values.address }}</textarea>
+  </label>
+  <label>
+    <span>Timezone</span>
+    <select name="timezone">
+      {% for zone in timezones %}
+      <option value="{{ zone }}" {% if values.timezone == zone %}selected{% endif %}>{{ zone }}</option>
+      {% endfor %}
+    </select>
+    {% if errors.timezone %}<span class="field-error">{{ errors.timezone }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Tax rate (%)</span>
+    <input name="tax_rate" value="{{ values.tax_rate }}">
+    <span class="help">Applied to new and edited jobs. US dollars only.</span>
+    {% if errors.tax_rate %}<span class="field-error">{{ errors.tax_rate }}</span>{% endif %}
+  </label>
+  <label class="check span-2">
+    <input type="checkbox" name="tax_labor" value="1" {% if values.tax_labor == "1" %}checked{% endif %}>
+    <span>Tax labor as well as materials. Uncheck where labor is exempt.</span>
+  </label>
+  <label>
+    <span>Job prefix</span>
+    <input name="job_prefix" value="{{ values.job_prefix }}">
+    {% if errors.job_prefix %}<span class="field-error">{{ errors.job_prefix }}</span>{% endif %}
+  </label>
+  <label>
+    <span>Invoice prefix</span>
+    <input name="invoice_prefix" value="{{ values.invoice_prefix }}">
+    {% if errors.invoice_prefix %}<span class="field-error">{{ errors.invoice_prefix }}</span>{% endif %}
+  </label>
+  <div class="span-2 form-actions">
+    <button class="btn" type="submit">Save shop</button>
+  </div>
+</form>
+<section class="card later">
+  <h2>Stripe</h2>
+  {% if stripe.ready and stripe.test_mode %}
+  <p class="banner">Stripe test mode is on. Cards are not really charged.</p>
+  {% elif stripe.ready and stripe.live_mode %}
+  <p class="banner">Live card payments are on.</p>
+  {% elif stripe.problem %}
+  <p class="help">{{ stripe.problem }}</p>
+  {% endif %}
+  <dl class="facts">
+    <div>
+      <dt>Secret key</dt>
+      <dd>{% if stripe.ready or stripe.live_mode or stripe.test_mode %}Saved on the server{% else %}Not set{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Webhook signing secret</dt>
+      <dd>{% if stripe.ready %}Saved on the server{% else %}Not set{% endif %}</dd>
+    </div>
+  </dl>
+  <p class="help">Fieldbook reads <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>, and <code>APP_BASE_URL</code> from the environment. Secret keys are never stored in the database or shown here.</p>
+</section>
+{% endblock %}

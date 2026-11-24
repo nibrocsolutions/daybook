@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import status_pill %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <p class="kicker">{{ today_label }}</p>
+    <h1>{{ greeting }}, {{ user.name.split()[0] }}.</h1>
+  </div>
+  <a class="btn" href="/jobs/new">New job</a>
+</header>
+{% if user.role == "admin" and sample_count %}
+<div class="banner">Sample jobs are loaded so you can look around. Remove them from Backup when the shop is ready for live work.</div>
+{% endif %}
+<section class="metrics" aria-label="Shop snapshot">
+  <article class="metric">
+    <p>Today</p>
+    <strong>{{ today_jobs|length }}</strong>
+    <span>{% if today_jobs|length == 1 %}appointment{% else %}appointments{% endif %}</span>
+  </article>
+  <article class="metric">
+    <p>In progress</p>
+    <strong>{{ in_progress_count }}</strong>
+    <span>{{ open_count }} open on the books</span>
+  </article>
+  <article class="metric">
+    <p>To collect</p>
+    <strong>{{ to_collect_cents|money }}</strong>
+    <span>{{ to_collect_count }} finished {% if to_collect_count == 1 %}job{% else %}jobs{% endif %}</span>
+  </article>
+  <article class="metric">
+    <p>Collected this month</p>
+    <strong>{{ collected_cents|money }}</strong>
+    <span>Card, cash, and check</span>
+  </article>
+</section>
+<div class="split">
+  <section class="card">
+    <div class="section-head">
+      <h2>Today</h2>
+      <a href="/schedule">Week</a>
+    </div>
+    {% if today_jobs %}
+    <ul class="run-list">
+      {% for job in today_jobs %}
+      <li>
+        <a href="/jobs/{{ job.id }}">
+          <span class="when">{{ job.scheduled_start|clock(shop.timezone) }}</span>
+          <span>
+            <strong>{{ job.title }}</strong>
+            <em>{{ job.customer.name }}{% if job.assignee %} · {{ job.assignee.name }}{% endif %}</em>
+          </span>
+          {{ status_pill(job.status) }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">Nothing on the schedule today.</p>
+    {% endif %}
+  </section>
+  <section class="card">
+    <div class="section-head">
+      <h2>To collect</h2>
+      <a href="/payments">Payments</a>
+    </div>
+    {% if to_collect %}
+    <ul class="run-list">
+      {% for job in to_collect %}
+      <li>
+        <a href="/jobs/{{ job.id }}">
+          <span class="when">{{ balance_cents(job)|money }}</span>
+          <span>
+            <strong>{{ job.title }}</strong>
+            <em>{{ job.customer.name }} · {{ job.number }}</em>
+          </span>
+          {{ status_pill(job.status) }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">No balance is waiting on finished work.</p>
+    {% endif %}
+  </section>
+</div>
+{% if behind %}
+<section class="card later">
+  <h2>Past the appointment time</h2>
+  <ul class="run-list">
+    {% for job in behind %}
+    <li>
+      <a href="/jobs/{{ job.id }}">
+        <span class="when">{{ job.scheduled_start|when(shop.timezone) }}</span>
+        <span>
+          <strong>{{ job.title }}</strong>
+          <em>{{ job.customer.name }}</em>
+        </span>
+        {{ status_pill(job.status) }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

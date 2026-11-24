@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<section class="login-split">
+  <div class="login-story">
+    <div>
+      <p class="product-kicker">Fieldbook</p>
+      <h1>{{ business_name if business_name != "Fieldbook" else "The job book for a handyman shop" }}</h1>
+      <p class="lede">Schedule the day, price the work, and keep every payment in one place.</p>
+    </div>
+    <ul class="story-points">
+      <li>Jobs, customers, and the week ahead</li>
+      <li>Cash, check, and Stripe card checkout</li>
+      <li>An admin for people, backups, and the shop profile</li>
+    </ul>
+  </div>
+  <div class="login-panel">
+    <div class="login-card">
+      <h2>Sign in</h2>
+      <p class="help">Your admin creates accounts. There is no public registration.</p>
+      {% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
+      <form method="post" action="/login" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="next" value="{{ next_url or '/' }}">
+        <label>
+          <span>Email</span>
+          <input type="email" name="email" autocomplete="username" required value="{{ email or '' }}">
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn" type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
