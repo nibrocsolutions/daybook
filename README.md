@@ -1,6 +1,6 @@
-# Fieldbook
+# Daybook
 
-Fieldbook is a job book for a small handyman shop. Staff sign in, schedule work, price labor and materials, and record cash, check, or card payments. An admin sets up people, the shop profile, and backups.
+Daybook is a job book for a small business that takes on all kinds of work: a software project, hanging a light, a light HVAC call, a stretch of yard work, or an errand. Staff sign in, schedule the job, price time and materials, and record cash, check, or card payments. An admin sets up people, the shop profile, and backups.
 
 The app is a Python web service (FastAPI, server-rendered HTML, Postgres) packaged with Docker Compose. Card charges go through Stripe Checkout. The card number never reaches this app.
 
@@ -17,9 +17,9 @@ The first launch creates an admin and, outside production, a fictional sample sh
 
 | | |
 |---|---|
-| Admin | `owner@fieldbook.local` / `change-this-password` |
-| Sample technician | `sam@fieldbook.local` / `sample-tech-password` |
-| Sample shop | Northline Handyman |
+| Admin | `owner@daybook.local` / `change-this-password` |
+| Sample staff | `sam@daybook.local` / `sample-tech-password` |
+| Sample shop | Northline |
 
 Change both passwords from **Account** (and the admin password in `.env` before any shared deploy) before you rely on the data. Sample rows are marked and can be removed from **Backup**.
 
@@ -45,15 +45,17 @@ python3 -m pytest
 
 There is no public sign-up. An admin creates every account.
 
-**Admin** can do everything a technician can, plus users, shop settings, JSON and CSV backup, refunds, and deleting customers or jobs.
+Each job is tagged house, yard, HVAC, software, errand, or other, and the job list can be filtered by that tag. Time, materials, and other charges are priced on the job. Time can be taxed or left untaxed.
 
-**Technician** can run assigned work: status, line items, crew notes, and cash, check, or other payments. A technician cannot open the admin desk, refund a payment, or delete a job.
+**Admin** can do everything staff can, plus users, shop settings, JSON and CSV backup, refunds, and deleting customers or jobs.
+
+**Staff** can run assigned work: status, line items, internal notes, and cash, check, or other payments. Staff cannot open the admin desk, refund a payment, or delete a job.
 
 The last active admin cannot be demoted or deactivated.
 
 ## Payments
 
-Money is stored in cents. Each job keeps its own tax rate. Labor can be taxed or left untaxed, copied from the shop when the job is opened.
+Money is stored in cents. Each job keeps its own tax rate. Time can be taxed or left untaxed, copied from the shop when the job is opened.
 
 Cash, check, and other payments work with no Stripe account. To take cards, set these in the environment (never in the database or the page):
 

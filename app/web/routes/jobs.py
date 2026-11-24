@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.constants import MANUAL_METHODS, STATUSES
+from app.constants import CATEGORIES, MANUAL_METHODS, STATUSES
 from app.formatting import datetime_local_value, format_money, format_percent, like_pattern, utcnow
 from app.forms import clean_multiline, clean_text, job_form_defaults, parse_cents, parse_job_form, parse_line_form
 from app.models import Customer, Job, JobLine, JobNote, Shop, User
@@ -54,6 +54,7 @@ def job_list(
     db: Session = Depends(get_db),
     q: str = "",
     status: str = "",
+    category: str = "",
     assignee: str = "",
     page: str = "1",
 ):
@@ -61,6 +62,8 @@ def job_list(
     term = q.strip()[:100]
     if status not in STATUSES and status != "all":
         status = ""
+    if category not in CATEGORIES:
+        category = ""
     current = _page(page)
     stmt = select(Job).join(Job.customer)
     count_stmt = select(func.count()).select_from(Job).join(Job.customer)
@@ -77,6 +80,9 @@ def job_list(
     elif assignee:
         stmt = stmt.where(Job.assigned_user_id == assignee)
         count_stmt = count_stmt.where(Job.assigned_user_id == assignee)
+    if category:
+        stmt = stmt.where(Job.category == category)
+        count_stmt = count_stmt.where(Job.category == category)
     if term:
         pattern = like_pattern(term)
         text = or_(
@@ -97,7 +103,7 @@ def job_list(
         .offset((current - 1) * per_page)
         .limit(per_page)
     ).all()
-    filters = {"q": term, "status": status, "assignee": assignee}
+    filters = {"q": term, "status": status, "category": category, "assignee": assignee}
 
     def link(number: int) -> str:
         payload = {key: value for key, value in filters.items() if value}
@@ -111,6 +117,7 @@ def job_list(
         jobs=jobs,
         q=term,
         status=status,
+        category=category,
         assignee=assignee,
         assignees=assignee_choices(db),
         page=current,
@@ -165,6 +172,7 @@ async def job_create(request: Request, db: Session = Depends(get_db)):
         number=allocate_number(db, shop, "job"),
         customer_id=parsed.customer_id,
         title=parsed.title,
+        category=parsed.category,
         description=parsed.description,
         service_address=parsed.service_address,
         priority=parsed.priority,
@@ -227,6 +235,7 @@ def job_edit(request: Request, job_id: str, db: Session = Depends(get_db)):
         {
             "customer_id": job.customer_id,
             "title": job.title,
+            "category": job.category,
             "description": job.description,
             "service_address": job.service_address,
             "priority": job.priority,
@@ -279,6 +288,7 @@ async def job_update(request: Request, job_id: str, db: Session = Depends(get_db
     before = (
         job.customer_id,
         job.title,
+        job.category,
         job.description,
         job.service_address,
         job.priority,
@@ -293,6 +303,7 @@ async def job_update(request: Request, job_id: str, db: Session = Depends(get_db
     old_status = job.status
     job.customer_id = parsed.customer_id
     job.title = parsed.title
+    job.category = parsed.category
     job.description = parsed.description
     job.service_address = parsed.service_address
     job.priority = parsed.priority
@@ -306,6 +317,7 @@ async def job_update(request: Request, job_id: str, db: Session = Depends(get_db
     after = (
         job.customer_id,
         job.title,
+        job.category,
         job.description,
         job.service_address,
         job.priority,

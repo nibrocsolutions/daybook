@@ -1,4 +1,4 @@
-"""Shared fixtures for the Fieldbook tests."""
+"""Shared fixtures for the Daybook tests."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from app.config import Settings
 from app.main import create_app
 from app.security import clear_login_attempts
 
-ADMIN_EMAIL = "owner@fieldbook.test"
+ADMIN_EMAIL = "owner@daybook.test"
 ADMIN_PASSWORD = "correct-horse-battery"
 _CSRF = re.compile(r'name="csrf_token" value="([^"]+)"')
 
@@ -19,7 +19,7 @@ _CSRF = re.compile(r'name="csrf_token" value="([^"]+)"')
 def make_settings(tmp_path, **overrides) -> Settings:
     values = dict(
         env="test",
-        database_url=f"sqlite:///{tmp_path}/fieldbook.db",
+        database_url=f"sqlite:///{tmp_path}/daybook.db",
         session_secret="test-session-secret-value-32chars",
         admin_email=ADMIN_EMAIL,
         admin_password=ADMIN_PASSWORD,

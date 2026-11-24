@@ -27,6 +27,15 @@
     <input name="title" required maxlength="140" value="{{ values.title }}">
     {% if errors.title %}<span class="field-error">{{ errors.title }}</span>{% endif %}
   </label>
+  <label>
+    <span>Kind of work</span>
+    <select name="category">
+      {% for item in CATEGORIES %}
+      <option value="{{ item }}" {% if values.category == item %}selected{% endif %}>{{ CATEGORY_LABELS[item] }}</option>
+      {% endfor %}
+    </select>
+    {% if errors.category %}<span class="field-error">{{ errors.category }}</span>{% endif %}
+  </label>
   <label class="span-2">
     <span>Scope of work</span>
     <textarea name="description">{{ values.description }}</textarea>
@@ -79,7 +88,7 @@
   </label>
   <label class="check">
     <input type="checkbox" name="tax_labor" value="1" {% if values.tax_labor == "1" %}checked{% endif %}>
-    <span>Tax labor as well as materials</span>
+    <span>Tax time as well as materials</span>
   </label>
   {% if mode == "edit" %}
   <label>
@@ -91,7 +100,7 @@
   <input type="hidden" name="discount" value="">
   {% endif %}
   <label class="span-2">
-    <span>Note for the customer <em class="help">Shown on the invoice. Crew notes stay off it.</em></span>
+    <span>Note for the customer <em class="help">Shown on the invoice. Internal notes stay off it.</em></span>
     <textarea name="customer_note">{{ values.customer_note }}</textarea>
     {% if errors.customer_note %}<span class="field-error">{{ errors.customer_note }}</span>{% endif %}
   </label>

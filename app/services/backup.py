@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.constants import (
     BACKUP_VERSION,
+    CATEGORIES,
     LINE_KINDS,
     MAX_MONEY_CENTS,
     METHOD_LABELS,
@@ -76,6 +77,7 @@ def jobs_csv(db: Session) -> str:
             "number",
             "invoice_number",
             "title",
+            "category",
             "status",
             "priority",
             "customer",
@@ -99,6 +101,7 @@ def jobs_csv(db: Session) -> str:
                 csv_safe(job.number),
                 csv_safe(job.invoice_number or ""),
                 csv_safe(job.title),
+                csv_safe(job.category),
                 csv_safe(job.status),
                 csv_safe(job.priority),
                 csv_safe(customer.name if customer else ""),
@@ -166,7 +169,7 @@ def payments_csv(db: Session) -> str:
 
 def import_payload(db: Session, payload: object) -> dict[str, int]:
     if not isinstance(payload, dict):
-        raise BackupError("That file is not a Fieldbook backup.")
+        raise BackupError("That file is not a Daybook backup.")
     if payload.get("version") != BACKUP_VERSION:
         raise BackupError("This backup version is not supported.")
     try:
@@ -187,7 +190,7 @@ def import_payload(db: Session, payload: object) -> dict[str, int]:
     except IntegrityError as exc:
         raise BackupError("That file conflicts with records already in the shop. Nothing was changed.") from exc
     except (TypeError, ValueError) as exc:
-        raise BackupError("That file has a field Fieldbook could not read. Nothing was changed.") from exc
+        raise BackupError("That file has a field Daybook could not read. Nothing was changed.") from exc
     user_rows = payload.get("users")
     return {
         "customers": len(customers),
@@ -202,7 +205,7 @@ def _as_list(value, label: str, limit: int) -> list:
     if not isinstance(value, list):
         raise BackupError(f"{label} must be a list.")
     if len(value) > limit:
-        raise BackupError(f"{label} has more rows than Fieldbook will import at once.")
+        raise BackupError(f"{label} has more rows than Daybook will import at once.")
     return value
 
 
@@ -276,9 +279,12 @@ def _import_jobs(db: Session, customers: dict[str, Customer], rows: list) -> dic
         status = str(row.get("status") or "inquiry")
         priority = str(row.get("priority") or "normal")
         if status not in STATUSES:
-            raise BackupError(f"{number} has a status Fieldbook does not use.")
+            raise BackupError(f"{number} has a status Daybook does not use.")
         if priority not in PRIORITIES:
-            raise BackupError(f"{number} has a priority Fieldbook does not use.")
+            raise BackupError(f"{number} has a priority Daybook does not use.")
+        category = str(row.get("category") or "other")
+        if category not in CATEGORIES:
+            raise BackupError(f"{number} has a kind of work Daybook does not use.")
         assignee = _optional_id(row.get("assigned_user_id"))
         if assignee and assignee not in user_ids:
             assignee = None
@@ -286,6 +292,7 @@ def _import_jobs(db: Session, customers: dict[str, Customer], rows: list) -> dic
         job.invoice_number = _optional_text(row.get("invoice_number"), 24)
         job.customer_id = customer_id
         job.title = _text(row.get("title"), "Job title", 140, required=True)
+        job.category = category
         job.description = _multiline(row.get("description"), "Description", 8000)
         job.service_address = _multiline(row.get("service_address"), "Service address", 500)
         job.status = status
@@ -315,7 +322,7 @@ def _import_lines(db: Session, jobs: dict[str, Job], rows: list) -> None:
             raise BackupError("A line item points at a job that is not in the shop.")
         kind = str(row.get("kind") or "labor")
         if kind not in LINE_KINDS:
-            raise BackupError("A line item has a kind Fieldbook does not use.")
+            raise BackupError("A line item has a kind Daybook does not use.")
         line_id = _optional_id(row.get("id"))
         line = db.get(JobLine, line_id) if line_id else None
         if line is None:
@@ -352,9 +359,9 @@ def _import_payments(db: Session, jobs: dict[str, Job], rows: list) -> None:
         method = str(row.get("method") or "")
         status = str(row.get("status") or "")
         if method not in METHOD_LABELS:
-            raise BackupError("A payment has a method Fieldbook does not use.")
+            raise BackupError("A payment has a method Daybook does not use.")
         if status not in PAYMENT_STATUSES:
-            raise BackupError("A payment has a status Fieldbook does not use.")
+            raise BackupError("A payment has a status Daybook does not use.")
         payment_id = _optional_id(row.get("id"))
         payment = db.get(Payment, payment_id) if payment_id else None
         if payment is None:
@@ -438,6 +445,7 @@ def _job_out(job: Job) -> dict:
         "invoice_number": job.invoice_number,
         "customer_id": job.customer_id,
         "title": job.title,
+        "category": job.category,
         "description": job.description,
         "service_address": job.service_address,
         "status": job.status,

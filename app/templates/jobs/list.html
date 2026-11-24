@@ -15,6 +15,15 @@
     <input type="search" name="q" value="{{ q }}" placeholder="Name, title, or job number">
   </label>
   <label>
+    <span>Kind of work</span>
+    <select name="category">
+      <option value="" {% if not category %}selected{% endif %}>Any kind</option>
+      {% for item in CATEGORIES %}
+      <option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ CATEGORY_LABELS[item] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
     <span>Status</span>
     <select name="status">
       <option value="" {% if not status %}selected{% endif %}>Open work</option>
@@ -54,7 +63,7 @@
       <tr>
         <td>
           <a href="/jobs/{{ job.id }}"><strong>{{ job.title }}</strong></a>
-          <div class="num">{{ job.number }}{% if job.priority == "urgent" %} · <span class="urgent">Urgent</span>{% endif %}</div>
+          <div class="num">{{ job.number }} · {{ CATEGORY_LABELS.get(job.category, job.category) }}{% if job.priority == "urgent" %} · <span class="urgent">Urgent</span>{% endif %}</div>
         </td>
         <td>{{ job.customer.name }}</td>
         <td class="hide-sm">{{ job.scheduled_start|when(shop.timezone) }}</td>

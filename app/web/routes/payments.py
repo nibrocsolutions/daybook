@@ -60,7 +60,7 @@ def payment_return(request: Request, db: Session = Depends(get_db), session_id: 
     elif result.status == "mismatch":
         flash(request, "Stripe reported an amount that does not match this job. Review it before trusting the balance.", "error")
     else:
-        flash(request, "Fieldbook could not match that checkout to a job.", "error")
+        flash(request, "Daybook could not match that checkout to a job.", "error")
     if result.job_id:
         return go(f"/jobs/{result.job_id}")
     return go("/payments")

@@ -23,6 +23,7 @@
     {% if job.customer.email %}<p>{{ job.customer.email }}</p>{% endif %}
   </section>
   <h2>{{ job.title }}</h2>
+  <p class="help">{{ CATEGORY_LABELS.get(job.category, job.category) }}</p>
   {% if job.description %}<p class="prose">{{ job.description }}</p>{% endif %}
   <table>
     <thead>

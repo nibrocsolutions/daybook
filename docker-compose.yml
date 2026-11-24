@@ -1,17 +1,17 @@
 # Local defaults are for one computer. Read the README before exposing this beyond localhost.
-name: fieldbook
+name: daybook
 
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: fieldbook
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fieldbook}
-      POSTGRES_DB: fieldbook
+      POSTGRES_USER: daybook
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-daybook}
+      POSTGRES_DB: daybook
     volumes:
-      - fieldbook-db:/var/lib/postgresql/data
+      - daybook-db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fieldbook -d fieldbook"]
+      test: ["CMD-SHELL", "pg_isready -U daybook -d daybook"]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -23,9 +23,9 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       ENV: ${ENV:-development}
-      DATABASE_URL: postgresql+psycopg://fieldbook:${POSTGRES_PASSWORD:-fieldbook}@db:5432/fieldbook
+      DATABASE_URL: postgresql+psycopg://daybook:${POSTGRES_PASSWORD:-daybook}@db:5432/daybook
       SESSION_SECRET: ${SESSION_SECRET:-dev-only-session-secret}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-owner@fieldbook.local}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-owner@daybook.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-password}
       ADMIN_NAME: ${ADMIN_NAME:-Avery Lang}
       SEED_DEMO: ${SEED_DEMO:-true}
@@ -45,4 +45,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  fieldbook-db:
+  daybook-db:

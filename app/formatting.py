@@ -176,7 +176,7 @@ def tax_label(rate_bps: int, tax_labor: bool) -> str:
     rate = format_percent(rate_bps)
     if tax_labor:
         return f"{rate}%"
-    return f"{rate}% on materials and other charges"
+    return f"{rate}% on materials and other charges, not time"
 
 
 def csv_safe(value: object) -> str:

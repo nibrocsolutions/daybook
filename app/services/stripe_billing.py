@@ -1,6 +1,6 @@
 """Stripe Checkout and refunds.
 
-Card numbers never touch Fieldbook. The browser is sent to Stripe, and Stripe
+Card numbers never touch Daybook. The browser is sent to Stripe, and Stripe
 tells us the result through a signed webhook or a session lookup.
 """
 
@@ -124,7 +124,7 @@ def start_checkout(db, settings: Settings, shop, job, actor) -> str:
         raise StripeNotReady("Stripe cannot charge less than $0.50. Record this balance manually.")
     if due > MAX_CHECKOUT_CENTS:
         raise StripeNotReady(
-            "Card checkout in Fieldbook is limited to $100,000. Record this payment in parts or use another method."
+            "Card checkout in Daybook is limited to $100,000. Record this payment in parts or use another method."
         )
     existing = recent_pending_checkout(job, due)
     if existing and existing.checkout_url:
@@ -279,7 +279,7 @@ def refund_payment(db, settings: Settings, job, payment: Payment, actor) -> None
             raise StripeNotReady("This card payment has no Stripe reference to refund.")
         if stripe_problem(settings):
             raise StripeNotReady(
-                "Stripe is not configured, so this card payment cannot be refunded from Fieldbook."
+                "Stripe is not configured, so this card payment cannot be refunded from Daybook."
             )
         try:
             stripe.Refund.create(

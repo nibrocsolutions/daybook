@@ -34,7 +34,7 @@
 <section class="card later">
   <h2>Sample shop</h2>
   <p>{{ sample_count }} sample {% if sample_count == 1 %}customer is{% else %}customers are{% endif %} still in the book, along with their jobs.</p>
-  <form method="post" action="/admin/sample/delete" data-confirm="Remove all sample customers, their jobs, and the sample technician?">
+  <form method="post" action="/admin/sample/delete" data-confirm="Remove all sample customers, their jobs, and the sample staff account?">
     {{ csrf() }}
     <button class="btn danger" type="submit">Remove sample data</button>
   </form>
