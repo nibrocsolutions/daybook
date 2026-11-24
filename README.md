@@ -11,13 +11,13 @@ Docker Compose starts Postgres and the web app. The site listens on `http://loca
 Copy these commands to get a local copy running:
 
 ```bash
-git clone https://github.com/nibrocsolutions/handyman-app.git
-cd handyman-app
+git clone https://github.com/nibrocsolutions/daybook.git
+cd daybook
 cp .env.example .env
 docker compose up --build
 ```
 
-Then open `http://localhost:8055`. Renaming the GitHub repository does not change anything inside the app. After a rename, clone the new address and `cd` into that folder. GitHub keeps the old address working as a redirect.
+Then open `http://localhost:8055`. The old `handyman-app` address still redirects here, so a clone you already have keeps working.
 
 The first launch creates an admin and, outside production, a fictional sample shop so the screens are not empty.
 
