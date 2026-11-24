@@ -6,7 +6,7 @@ The app is a Python web service (FastAPI, server-rendered HTML, Postgres) packag
 
 ## Run with Docker
 
-Docker Compose starts Postgres and the web app in the background and returns the command line. On that machine the site is `http://localhost:8055`. The same pages are laid out for iPhone Safari out on a job and for Chrome on a Mac back at the desk.
+Docker Compose starts Postgres and the web app in the background and returns the command line. Port 8055 is published on the machine's network addresses, so a phone or another computer can open it the same way as another service on this host. On the machine itself the site is also `http://localhost:8055`. The pages are laid out for iPhone Safari out on a job and for Chrome on a Mac back at the desk.
 
 Copy these commands to get a local copy running:
 
@@ -17,20 +17,13 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-Then open `http://localhost:8055`. The old `handyman-app` address still redirects here, so a clone you already have keeps working.
+`hostname -I` prints this machine's address. Open `http://<that-address>:8055` from a phone or another computer, for example `http://192.168.1.20:8055`. On the machine itself, `http://localhost:8055` works too. The old `handyman-app` address still redirects here, so a clone you already have keeps working.
 
 `-d` leaves the containers running and gives the prompt back. The log lines that follow a foreground start (`Daybook ready`, then `GET /health`) mean the app is up. Those health checks repeat on their own. Watch them with `docker compose logs -f`. Stop with `docker compose down`.
 
 If a start is still attached to the terminal, press Ctrl+C, then run `docker compose up -d`.
 
-On a Raspberry Pi, `127.0.0.1` only accepts connections from the Pi itself. To open Daybook from a phone or from another computer on the same network, change the bind line in `.env` to `DAYBOOK_BIND=0.0.0.0`, then run:
-
-```bash
-docker compose up -d
-hostname -I
-```
-
-Open `http://<that-address>:8055`, for example `http://192.168.1.20:8055`.
+To accept connections only from this machine, set `DAYBOOK_BIND=127.0.0.1` in `.env` and run `docker compose up -d` again. The default `0.0.0.0` is what makes port 8055 reachable from the rest of the network. A container that is already running keeps its old port binding until that command recreates it.
 
 The first launch creates an admin and, outside production, a fictional sample shop so the screens are not empty.
 
@@ -120,7 +113,7 @@ Put TLS in front of the app and set:
 - `SEED_DEMO=false`
 - Stripe live keys only after a test-mode payment has succeeded
 
-The session cookie is `Secure` when `ENV=production`. Compose publishes port 8055 on `127.0.0.1` unless `DAYBOOK_BIND` is set, so a reverse proxy on the same machine is the intended public entry.
+The session cookie is `Secure` when `ENV=production`. Compose publishes port 8055 on every interface. Set `DAYBOOK_BIND=127.0.0.1` when a reverse proxy on the same machine is the public entry.
 
 ## Layout
 

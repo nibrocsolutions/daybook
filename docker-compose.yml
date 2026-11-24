@@ -1,4 +1,5 @@
-# Local defaults are for one computer. Read the README before exposing this beyond localhost.
+# Port 8055 is published on every interface, the same way a home server publishes a port.
+# Set DAYBOOK_BIND=127.0.0.1 to accept connections only from this machine.
 name: daybook
 
 services:
@@ -20,7 +21,7 @@ services:
   web:
     build: .
     ports:
-      - "${DAYBOOK_BIND:-127.0.0.1}:8055:8055"
+      - "${DAYBOOK_BIND:-0.0.0.0}:8055:8055"
     environment:
       ENV: ${ENV:-development}
       DATABASE_URL: postgresql+psycopg://daybook:${POSTGRES_PASSWORD:-daybook}@db:5432/daybook
